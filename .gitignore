@@ -1,0 +1,20 @@
+# 环境密钥文件
+.env
+*.env
+.env.local
+.env.dev
+# Python 缓存
+__pycache__/
+*.pyc
+venv/
+.venv/
+# 日志、缓存
+logs/
+cache/
+tmp/
+# IDE配置
+.vscode/
+.idea/
+# Docker
+Dockerfile
+.dockerignore.env

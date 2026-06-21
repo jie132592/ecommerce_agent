@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/LLM_study/ecommerce-bot/**)",
+      "Bash(git rm *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git show-ref *)",
+      "Read(//d/python_study/.git/**)",
+      "Read(//d//**)",
+      "Bash(rm -rf .git)",
+      "Bash(git init *)",
+      "Bash(git remote *)"
+    ]
+  }
+}

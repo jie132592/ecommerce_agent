@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.env
+.venv
+venv/
+env/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.docker/
+
+# Logs
+*.log
+logs/
+
+# Docs
+*.md
+!README.md
+docs/
+
+# Misc
+.DS_Store
+Thumbs.db
