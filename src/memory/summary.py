@@ -12,7 +12,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from watchfiles import awatch
 
-from config import LLM_CONFIG, MEMORY_CONFIG
+from src.config import LLM_CONFIG, MEMORY_CONFIG
 
 
 class SummaryMemory:

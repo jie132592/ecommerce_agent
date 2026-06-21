@@ -13,9 +13,9 @@ Review Agent — 自我反思 + 质量评分
 """
 from langchain_core.messages import AIMessage
 
-from agent.state import AgentState
-from llm import get_llm
-from prompts import REVIEWER
+from src.agent.state import AgentState
+from src.llm import get_llm
+from src.prompts import REVIEWER
 
 
 async def reviewer_node(state: AgentState) -> AgentState:

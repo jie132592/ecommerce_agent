@@ -34,27 +34,25 @@ OLLAMA_CONFIG = {
 
 
 # 当前激活的配置（切换生产时 swap 这一块即可）
-# 开发用 Ollama（当前激活）：
-LLM_CONFIG = OLLAMA_CONFIG.copy()
-LLM_CONFIG["model"] = LOCAL_LARGE_MODEL  # 默认大模型，Router 会根据复杂度降级到小模型
+# 开发用 Ollama：
+# LLM_CONFIG = OLLAMA_CONFIG.copy()
+# LLM_CONFIG["model"] = LOCAL_LARGE_MODEL
 
-# 生产用 vLLM（取消下面这行注释，上面那行注释掉）：
+# 生产用 vLLM：
 # LLM_CONFIG = VLLM_CONFIG.copy()
 # LLM_CONFIG["model"] = LOCAL_LARGE_MODEL
 
-# 复杂度阈值（tokens），超过用大模型
-# 复杂度阈值（tokens），超过用大模型
-# 经验值：单句 > 50 tokens 或多轮上下文 > 200 tokens 用大模型
-COMPLEXITY_TOKEN_THRESHOLD = int(os.getenv("COMPLEXITY_TOKEN_THRESHOLD", "50"))
+# 智谱 GLM-4（当前激活）：
+LLM_CONFIG = {
+    "model": "glm-4",
+    "api_key": os.getenv("ZHIPU_API_KEY"),
+    "base_url": os.getenv("ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4/"),
+    "temperature": 0.7,
+    "streaming": True
+}
 
-# LLM配置
-# LLM_CONFIG = {
-#     "model": os.getenv("LLM_MODEL", "glm-4-flash"),
-#     "api_key": os.getenv("ZHIPU_API_KEY"),
-#     "base_url": os.getenv("ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4/"),
-#     "temperature": 0.7,
-#     "streaming": True
-# }
+# 复杂度阈值（tokens），超过用大模型
+COMPLEXITY_TOKEN_THRESHOLD = int(os.getenv("COMPLEXITY_TOKEN_THRESHOLD", "50"))
 
 # Redis
 REDIS_CONFIG = {
@@ -66,7 +64,7 @@ REDIS_CONFIG = {
 
 # 缓存配置
 CACHE_CONFIG = {
-    "enabled": True,
+    "enabled": False,  # 临时禁用以便测试
     "ttl": 300, # 5分钟缓存
     "max_tokens": 2000, # 超出此长度不缓存
 }
@@ -92,7 +90,7 @@ SECURITY_CONFIG = {
 # 限流配置
 RATE_LIMIT_CONFIG = {
     # 是否开启限流
-    "enabled": True,
+    "enabled": False,  # 临时关闭以便测试
     # 每秒稳定允许10个请求（令牌桶匀速发放）
     "requests_per_second": 10,
     # 突破峰值最大容纳20个请求（令牌桶最大容量）

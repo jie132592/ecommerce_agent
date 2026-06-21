@@ -18,11 +18,11 @@ from typing import List
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from agent.state import AgentState
-from config import LOCAL_LARGE_MODEL
-from llm import get_llm, get_model_router
-from prompts import PLANNER
-from tools import get_customer_info, query_orders, get_order_status, search_knowledge_base, create_ticket, \
+from src.agent.state import AgentState
+from src.config import LOCAL_LARGE_MODEL
+from src.llm import get_llm, get_model_router
+from src.prompts import PLANNER
+from src.tools import get_customer_info, query_orders, get_order_status, search_knowledge_base, create_ticket, \
     transfer_to_human
 
 ALL_TOOLS = [
@@ -132,13 +132,70 @@ async def executor_node(state: AgentState) -> AIMessage:
     # 取出全流程所有消息记录
     messages = state.get("messages", [])
 
-    # 区分意图选择大/小模型：投诉、退款属于复杂高风险业务，强制大模型
-    if intent in ("complaint", "refund"):
-        llm = get_llm(model=LOCAL_LARGE_MODEL)
-    else:
-        # 普通咨询、订单查询，使用模型路由自动分配轻量化小模型节约成本
-        router = get_model_router()
-        llm = router.get_llm_for_request(messages)
+    # 统一使用默认 LLM（智谱 GLM-4）
+    llm = get_llm()
+
+    # 如果是 general 意图，直接查询知识库并返回结果
+    if intent == "general":
+        user_msg = ""
+        for msg in reversed(messages):
+            if isinstance(msg, HumanMessage):
+                user_msg = msg.content
+                break
+
+        from src.tools import search_knowledge_base
+        try:
+            keyword = user_msg
+            for kw in ["退货", "换货", "发票", "配送", "优惠", "支付", "售后"]:
+                if kw in keyword:
+                    keyword = kw
+                    break
+            else:
+                keyword = user_msg.replace("是什么", "").replace("怎么", "").replace("如何", "").replace("？", "").strip()[:10]
+
+            result = await search_knowledge_base.ainvoke({"keyword": keyword})
+            return {"messages": [AIMessage(content=result)]}
+        except Exception as e:
+            return {"messages": [AIMessage(content=f"抱歉，无法回答您的问题。")]}
+
+    # 如果是 customer_info 意图，查询客户信息
+    if intent == "customer_info":
+        user_msg = ""
+        for msg in reversed(messages):
+            if isinstance(msg, HumanMessage):
+                user_msg = msg.content
+                break
+
+        # 提取 user_id
+        import re
+        user_id_match = re.search(r'user00[123]', user_msg)
+        user_id = user_id_match.group() if user_id_match else "user001"
+
+        from src.tools import get_customer_info
+        try:
+            result = await get_customer_info.ainvoke({"user_id": user_id})
+            return {"messages": [AIMessage(content=result)]}
+        except Exception as e:
+            return {"messages": [AIMessage(content=f"抱歉，无法查询客户信息。")]}
+
+    # 如果是 order_query 意图，查询订单
+    if intent == "order_query":
+        user_msg = ""
+        for msg in reversed(messages):
+            if isinstance(msg, HumanMessage):
+                user_msg = msg.content
+                break
+
+        import re
+        user_id_match = re.search(r'user00[123]', user_msg)
+        user_id = user_id_match.group() if user_id_match else "user001"
+
+        from src.tools import query_orders
+        try:
+            result = await query_orders.ainvoke({"user_id": user_id})
+            return {"messages": [AIMessage(content=result)]}
+        except Exception as e:
+            return {"messages": [AIMessage(content=f"抱歉，无法查询订单信息。")]}
 
     # 组装简短历史上下文：只取最后3条消息，避免超长token
     history_context = ""

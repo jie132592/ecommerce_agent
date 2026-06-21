@@ -13,7 +13,7 @@ import os
 import re
 from typing import Optional
 
-from config import SECURITY_CONFIG
+from src.config import SECURITY_CONFIG
 
 
 class InputGuard:

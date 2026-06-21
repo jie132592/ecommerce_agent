@@ -8,9 +8,9 @@ Router Agent — 意图分类 + 人工介入判断
 """
 from langchain_core.messages import HumanMessage, AIMessage
 
-from agent.state import AgentState
-from llm import get_llm
-from prompts import ROUTER
+from src.agent.state import AgentState
+from src.llm import get_llm
+from src.prompts import ROUTER
 
 
 async def router_node(state: AgentState) -> AgentState:
@@ -34,17 +34,21 @@ async def router_node(state: AgentState) -> AgentState:
     # 获取大模型
     llm = get_llm()
     try:
+        prompt_text = ROUTER.render(user_message=last_msg)
+        print(f"[ROUTER DEBUG] Calling LLM with message: {last_msg}")
         response = await llm.ainvoke([
-            AIMessage(content=ROUTER.render(user_message=last_msg))
+            HumanMessage(content=prompt_text)
         ])
+        print(f"[ROUTER DEBUG] LLM response: {response.content}")
         # 拿到模型返回的意图文本，去除首尾空格并转小写统一格式
         intent = response.content.strip().lower()
         # LLM调用超时/报错，意图直接设为未知
-    except Exception:
+    except Exception as e:
+        print(f"[ROUTER ERROR] {e}")
         intent = "unknown"
 
-    # 定义合法的5种意图集合
-    valid_intents = {"order_query", "refund", "complaint", "general", "unknown"}
+    # 定义合法的6种意图集合
+    valid_intents = {"order_query", "customer_info", "refund", "complaint", "general", "unknown"}
     # 如果模型输出不在合法列表里，统一修正为unknown
     if intent not in valid_intents:
         intent = "unknown"
@@ -58,6 +62,7 @@ async def router_node(state: AgentState) -> AgentState:
         "unknown": "无法理解用户意图，需要人工确认",
     }
     # 更新全局状态，输出分类结果给后续节点使用
+    print(f"[ROUTER DEBUG] intent={intent}, needs_human={needs_human}")
     return {
         "intent": intent,
         # 非未知意图置信度0.85，未知只有0.3（代表识别不准）

@@ -17,7 +17,7 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import BaseMessage, messages_from_dict, SystemMessage, message_to_dict
 from watchfiles import awatch
 
-from config import MEMORY_CONFIG, REDIS_CONFIG
+from src.config import MEMORY_CONFIG, REDIS_CONFIG
 
 
 class RedisConversationHistory(BaseChatMessageHistory):

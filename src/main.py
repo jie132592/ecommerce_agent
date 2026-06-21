@@ -28,12 +28,12 @@ from slowapi.util import get_remote_address
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-from agent import get_customer_agent
-from cache import get_response_cache
-from config import SERVER_CONFIG, REDIS_CONFIG, RATE_LIMIT_CONFIG
-from memory.redis_history import get_history_manager
-from resilience import FallbackResponse
-from tracing import RequestContext, TraceSpan, log_request_metrics, init_tracing
+from src.agent import get_customer_agent
+from src.cache import get_response_cache
+from src.config import SERVER_CONFIG, REDIS_CONFIG, RATE_LIMIT_CONFIG
+from src.memory.redis_history import get_history_manager
+from src.resilience import FallbackResponse
+from src.tracing import RequestContext, TraceSpan, log_request_metrics, init_tracing
 
 
 @asynccontextmanager
@@ -244,7 +244,7 @@ async def chat(request: ChatRequest, ):
         return StreamingResponse(
             generate(),
             # 响应数据类型，固定 SSE 协议标准 MIME 类型
-            media_type="text/event-stream",
+            media_type="text/event-stream; charset=utf-8",
             headers={
                 "Cache-Control": "no-cache",
                 "connect": "keep-alive",

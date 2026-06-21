@@ -3,12 +3,12 @@ from langchain_core.runnables.graph import Graph
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 
-from agent.executor import executor_node
-from agent.reviewer import reviewer_node
-from agent.router import router_node
-from agent.state import AgentState
-from llm import get_llm
-from prompts import FINAL_ANSWER
+from src.agent.executor import executor_node
+from src.agent.reviewer import reviewer_node
+from src.agent.router import router_node
+from src.agent.state import AgentState
+from src.llm import get_llm
+from src.prompts import FINAL_ANSWER
 
 
 async def human_node(state: AgentState) -> AgentState:
@@ -43,13 +43,20 @@ async def final_answer_node(state: AgentState) -> AgentState:
         if isinstance(msg, AIMessage):
             context.append(msg.content)
 
+    # 如果已经有内容（来自 executor 的直接返回），直接使用
+    if context:
+        final_text = context[0]  # 使用第一个有效的 AI 消息
+        return {
+            "messages": [AIMessage(content=final_text)]
+        }
+
     try:
         res = await llm.ainvoke([
             HumanMessage(content=FINAL_ANSWER.render(context="\n".join(context))),
         ])
         final_text = res.content
     except Exception as e:
-        final_text = "抱歉，服务暂时繁忙，请稍后再试。"
+        final_text = context[0] if context else "抱歉，无法回答您的问题。"
 
     return {
         "messages": [AIMessage(content=final_text)]
